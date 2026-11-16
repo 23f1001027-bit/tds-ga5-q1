@@ -513,6 +513,18 @@ def answer_question(question: str, top_k: int = 3) -> dict:
     return body
 
 
+from collections import deque
+import time as _time
+
+RECENT: deque = deque(maxlen=100)
+
+
+@app.get("/recent")
+def recent():
+    """Last 100 questions received and what was returned (for debugging the gauntlet)."""
+    return list(RECENT)
+
+
 @app.get("/")
 def root():
     return {"status": "ok", "passages": len(PASSAGES), "endpoint": "POST /query"}
@@ -538,6 +550,8 @@ async def query(request: Request):
     except Exception:
         top_k = 3
     body = answer_question(str(q), top_k)
+    RECENT.append({"t": _time.strftime("%H:%M:%S"), "payload": payload, "response": body})
+    print("QUERY", json.dumps({"q": q, "top_k": top_k, "r": body}), flush=True)
     return JSONResponse(body, headers={"Access-Control-Allow-Origin": "*"})
 
 
