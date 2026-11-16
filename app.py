@@ -70,11 +70,49 @@ def norm(text: str) -> str:
 
 SYNONYMS = [
     (r"\bstructur\w*|\bformat(?:ted)?\b|\bcompos\w*|\bmade (?:up )?of\b", "comprise segments"),
-    (r"\bmachines?\b|\bservers?\b", "nodes"),
+    (r"\bmachines?\b|\bservers?\b|\bpeers?\b", "nodes"),
     (r"\bspeed(?:s)? up\b|\bfaster\b", "accelerate"),
     (r"\bhow (?:large|big)\b", "size bits"),
     (r"\bwait(?:s|ing)? for\b|\bwaits?\b", "wait timeout"),
     (r"\bconsensus\b", "consensus quorum"),
+    # leader / follower vocabulary
+    (r"\bkeep-?alive\w*|\bliveness (?:signals?|pings?|messages?)|\bpulses?\b|\bperiodic (?:signals?|beacons?|messages?)",
+     "heartbeats heartbeat"),
+    (r"\bcoordinat(?:or|ing node)\b|\bprimary node\b|\bmaster\b|\belected (?:node|replica|server)\b", "leader"),
+    (r"\bsubordinate\w*|\bfollowing (?:nodes?|replicas?)|\bsecondar(?:y|ies) replicas?\b|\bnon-leader", "follower"),
+    (r"\belection (?:triggers?|initiation|start)", "election timeouts"),
+    (r"\bmajority\b|\bagreement threshold\b", "quorum"),
+    # optimisation vocabulary
+    (r"\b(?:scalar )?coefficient\b|\bstep[- ]size\b|\bstep length\b|\bmultiplier applied to (?:the )?gradients?\b",
+     "learning rate"),
+    (r"\bgradient adjustment\b|\bgradient step\b", "gradient updates"),
+    (r"\bparameter weights?\b|\bmodel parameters\b", "weight"),
+    (r"\bsubsets? of (?:training )?(?:data|examples|samples)\b", "mini-batches"),
+    (r"\bzero(?:ed|ing|es)? out\b|\bdeactivat\w+", "zeros dropout"),
+    (r"\bcontext (?:length|window)\b|\bsequence (?:length|window)\b", "window lengths tokens"),
+    (r"\bcut-?off\b|\bdecision boundary\b", "threshold"),
+    (r"\bstages?\b|\bdepth\b", "blocks layers"),
+    # data systems vocabulary
+    (r"\bdaemon\b|\bserver process\b|\bservice process\b", "server daemon listen"),
+    (r"\bsocket\b|\bendpoint\b", "port connections"),
+    (r"\binactiv\w+|\bidle\w*|\bdormant\b|\bunused\b", "idle inactivity"),
+    (r"\bdrop(?:s|ped)?\b|\bterminat\w+|\bdisconnect\w*|\bclos(?:e|es|ed|ing)\b", "disconnect terminate"),
+    (r"\backnowledg\w+|\bconfirm\w*|\backs?\b", "acknowledgment acknowledge"),
+    (r"\bimbalance\b|\buneven\w*|\bvariance\b", "skew variance"),
+    (r"\breattempts?\b|\bretry attempts?\b", "retries"),
+    (r"\broll(?:s|ed)? ?back\b|\bundo(?:ne)?\b|\breversal\b", "compensation abort"),
+    (r"\bresend\w*|\bre-?send\w*|\bre-?transmi\w+", "retransmission"),
+    (r"\bvotes?\b|\bvoting\b", "acknowledge quorum"),
+    (r"\bexpir\w+|\bstale\b", "expiration timeout"),
+    (r"\bwait (?:time|period|duration)|\bback-?off\b|\bcool-?down\b", "wait duration"),
+    (r"\blifetime\b|\btenure\b", "lease terms"),
+    # security / network vocabulary
+    (r"\bkey agreement\b|\bkey negotiation\b", "key exchange"),
+    (r"\bhash(?:ing)? (?:function|algorithm|primitive)\b", "digest"),
+    (r"\bsignatures?\b", "signature signing"),
+    (r"\bthrottl\w+|\brate[- ]limit\w*", "throttle rate limiting"),
+    (r"\blink[- ]state\b", "link-state advertisements"),
+    (r"\bhello (?:packets?|messages?)\b", "hello heartbeats"),
 ]
 
 
@@ -163,7 +201,7 @@ ATTR_PATTERNS = [
     ("bits", r"\bbits?\b|\bkey (?:length|size)s?\b|\bsecurity (?:level|strength)\b|\btag size\b"),
     ("hash", r"\bhash(?:ing)? (?:function|algorithm)|\bdigests?\b|\b(?:which|what) hash\b|\bprimitive\b|"
              r"\bhash (?:do|does)\b"),
-    ("systems", r"\bwhich (?:systems?|databases?|products?|projects?|tools?|implementations?|companies|browsers?|"
+    ("systems", r"\bwhich (?:[a-z0-9]+ )?(?:systems?|databases?|products?|projects?|tools?|implementations?|companies|browsers?|"
                 r"proxies|proxy|caches?|models?|services?|frameworks?|platforms?|curves?|vendors?|libraries)\b|"
                 r"\bwho (?:uses?|implements?)\b|\bwhat (?:systems?|databases?|products?|software|tools?|projects?|"
                 r"frameworks?|platforms?|curves?)\b|\breal[- ]world\b|\bexamples? of\b|\bimplemented (?:by|in)\b"),
@@ -171,10 +209,10 @@ ATTR_PATTERNS = [
                  r"\bmilliseconds?\b|\bhow long\b|\bduration\b|\b(?:grant|penalty|time) window\b|\blease\b|"
                  r"\bwait\b|\bdelays?\b|\btime limit\b|\bbudget\b|\bdrift\b|\bhow (?:quickly|fast|soon)\b|"
                  r"\bwithin how\b|\brto\b|\bkeepalive\b|\bexpire|\bteardown\b|\bclock skew\b"),
-    ("ratio", r"\bthresholds?\b|\bratio\b|\bprobability\b|\bsaturation\b|\butili[sz]ation\b|"
+    ("ratio", r"\bstep[- ]sizes?\b|\b(?:scalar )?coefficients?\b|\bthresholds?\b|\bratio\b|\bprobability\b|\bsaturation\b|\butili[sz]ation\b|"
               r"\bfraction\b|\bmetric\b|\blearning rates?\b|\bpercent|\bburst\b|\bcorrelation\b|"
               r"\bskew\b|\bvariance\b|\bslack\b|\bcut-?off\b|\bbuffer usage\b|\bfill\b|\brates?\b|\bdropout\b"),
-    ("count", r"\bhow many\b|\bhow (?:large|big|wide|long is the window)\b|\bnumber of\b|\bquorums?\b|\bcounts?\b|\bsizes?\b|\bbatch|\bsamples?\b|"
+    ("count", r"\bhow many\b|\bhow (?:large|big|wide|long is the window)\b|\bnumber of\b|\bquorums?\b|\bcounts?\b|(?<!step )(?<!step-)\bsizes?\b|\bbatch|\bsamples?\b|"
               r"\bchunks?\b|\bbytes\b|\brecords?\b|\btokens?\b|\bentries\b|\blayers?\b|\bblocks?\b|"
               r"\bmembers?\b|\bretries\b|\breplicas?\b|\bnodes?\b|\bparticipants?\b|\bacceptors?\b|"
               r"\binstances\b|\bexamples\b|\bwindow length|\bgroups?\b"),
@@ -183,13 +221,29 @@ ATTR_PATTERNS = [
 
 def detect_attrs(q: str) -> list[str]:
     ql = q.lower()
-    found = [name for name, pat in ATTR_PATTERNS if re.search(pat, ql)]
+    pos = {}
+    for name, pat in ATTR_PATTERNS:
+        m = re.search(pat, ql)
+        if m:
+            pos[name] = m.start()
+    # "count" triggered only by a generic noun (nodes, blocks...) is a weak signal: rank it last
+    if "count" in pos and not re.search(r"\bhow many\b|\bnumber of\b|\bquorums?\b|\bcounts?\b|"
+                                        r"(?<!step )\bsizes?\b|\bhow (?:large|big)\b", ql):
+        pos["count"] = 10_000
+    # an explicit unit ("in milliseconds", "in bits", "which port") outranks everything
+    unit = re.search(r"\b(?:in|of|how many) (milliseconds?|ms|bits?|bytes|samples|tokens|records|nodes|layers|"
+                     r"blocks|replicas|members|participants|acceptors|retries|entries)\b", ql)
+    if unit:
+        u = unit.group(1)
+        key = "duration" if u.startswith("milli") or u == "ms" else "bits" if u.startswith("bit") else "count"
+        pos[key] = -1
+    found = sorted(pos, key=lambda k: (pos[k], [n for n, _ in ATTR_PATTERNS].index(k)))
     # a question about "skew threshold 0.x" vs "skew 500ms": keep both, sentence scoring decides
     return found
 
 
 SYS_VERB = re.compile(r"\b(?:implement|incorporate|rel(?:y|ies)|use|utilize|employ|popularized|default|"
-                      r"demonstrate|depend|represent|mandates|negotiate)s?\b", re.I)
+                      r"demonstrate|depend|represent|mandates|negotiate|support)s?\b", re.I)
 
 
 def sentence_has(attr: str, s: str) -> bool:
@@ -336,7 +390,7 @@ def merge_phrases(q: str, names: list[str]) -> list[str]:
 
 
 def unknown_entities(names: list[str]) -> list[str]:
-    return [t for t in names if not kb_has_token(t)]
+    return [t for t in names if not re.fullmatch(r"[\d.]+", t) and not kb_has_token(t)]
 
 
 PASSAGE_LOWER = [p.lower() for p in PASSAGES]
@@ -410,7 +464,7 @@ def best_answer(q: str, pid: int, names: list[str], attrs: list[str]) -> tuple[s
     sent_score = focus_scores(q, subj)
     cands = [(k, j, s) for k, (i, j, s) in enumerate(FLAT_SENTS) if i == pid]
     present = [a for a in attrs if any(sentence_has(a, s) for _, _, s in cands)]
-    strong_asked = [a for a in attrs if a in STRONG]
+    strong_asked = [a for a in attrs[:1] if a in STRONG]
     if strong_asked and not any(a in present for a in strong_asked):
         return None, 0.0
     numeric_asked = [a for a in attrs if a in ("duration", "ratio", "count")]
@@ -429,12 +483,100 @@ def best_answer(q: str, pid: int, names: list[str], attrs: list[str]) -> tuple[s
     return scored[0][2], scored[0][0]
 
 
+
+# --------------------------------------------------------------------------- premises & coverage
+PREMISE_MODE = os.environ.get("PREMISE_MODE", "correct").lower()  # "correct" or "abstain"
+PREMISE_RE = re.compile(
+    r"^\s*(?:since|given(?: that)?|assuming(?: that)?|because|as|if|knowing(?: that)?|considering(?: that)?|"
+    r"provided(?: that)?|now that|with)\b\s*(?P<premise>.+?)\s*[,;:]\s*(?P<ask>(?:then\s+)?(?:what|which|how|when|"
+    r"where|who|why|is|are|does|do|can|could|would|will|tell|give|name|list)\b.*)$", re.I | re.S)
+NUM_IN_TEXT = re.compile(r"(?<![\w.])(\d+(?:\.\d+)?)\s*(ms|milliseconds?|bits?|bytes|%)?", re.I)
+
+
+def split_premise(q: str) -> tuple[str, str]:
+    m = PREMISE_RE.match(q)
+    if m and re.search(r"\d", m.group("premise")):
+        return m.group("premise").strip(), m.group("ask").strip()
+    return "", q
+
+
+def _num_contexts(text: str) -> dict[str, set]:
+    """number -> stems of the words around it (what the number measures)."""
+    toks = re.findall(r"\d+(?:\.\d+)?(?:ms)?|[a-z][a-z\-]*", text.lower())
+    out: dict[str, set] = {}
+    for i, t in enumerate(toks):
+        m = re.fullmatch(r"(\d+(?:\.\d+)?)(ms)?", t)
+        if not m:
+            continue
+        ctx = {stem(w) for w in toks[max(0, i - 3):i] + toks[i + 1:i + 4]
+               if not re.match(r"\d", w) and w not in STOP and len(w) > 2}
+        if m.group(2):
+            ctx.add("ms")
+        out.setdefault(m.group(1), set()).update(ctx)
+    return out
+
+
+def premise_conflict(premise: str) -> tuple[bool, int, str | None]:
+    """Does a numeric premise contradict the KB? Returns (conflict, passage, correcting sentence)."""
+    names = named_tokens(premise)
+    raw, _, _, _ = retrieve(NUM_IN_TEXT.sub(" ", premise), names)
+    pid = int(np.argmax(raw))
+    if calibrate(raw)[pid] < ABSTAIN_SCORE:
+        return False, pid, None
+    pctx = _num_contexts(PASSAGES[pid])
+    qctx = _num_contexts(re.sub(r"(\d)\s*(?:milliseconds?|msec)\b", r"\1ms", premise))
+    if not qctx:
+        return False, pid, None
+    conflict = False
+    for num, ctx in qctx.items():
+        ctx = ctx - {stem(n.lower()) for n in names}
+        if num not in pctx or (ctx and not (ctx & pctx[num])):
+            conflict = True
+    if not conflict:
+        return False, pid, None
+    fs = focus_scores(NUM_IN_TEXT.sub(" ", premise), names)
+    cands = [(fs[k], s) for k, (i, _, s) in enumerate(FLAT_SENTS) if i == pid and re.search(r"\d", s)]
+    return True, pid, (max(cands)[1] if cands else None)
+
+
+GENERIC = set("""handle handles handled handling work works working perform performs performed implement implements
+implemented use uses used using exact exactly specifically specific default standard typical typically value values
+configured configure configuration specified define defined protocol algorithm system systems mechanism approach
+role purpose happen happens occur occurs during within when while between across adjacent architecture synthesizing
+integrate integrates both furthermore model models method methods lot lots much amount""".split())
+
+
+def coverage(ask: str, pid: int, names: list[str]) -> float:
+    """Share of the question's distinctive words that the passage actually talks about."""
+    text = ask
+    for n in sorted(names, key=len, reverse=True):
+        text = re.sub(r"(?<![A-Za-z0-9])" + re.escape(n) + r"(?![A-Za-z0-9])", " ", text)
+    words = [w for w in re.findall(r"[a-z][a-z0-9\-]+", text.lower()) if w not in STOP and w not in GENERIC
+             and len(w) > 2]
+    if not words:
+        return 1.0
+    ptoks = {stem(t) for t in re.findall(r"[a-z0-9]+", PASSAGES[pid].lower().replace("-", " "))}
+    ptext = PASSAGES[pid].lower()
+    hit = 0
+    for w in words:
+        exp = expand_query(w).lower()
+        toks = {stem(t) for t in re.findall(r"[a-z0-9]+", exp.replace("-", " "))}
+        if toks & ptoks or w in ptext:
+            hit += 1
+    return hit / len(words)
+
+
+MECHANISM = re.compile(r"^\s*(?:how (?:does|do|is|are|can|should)\b(?!.*\b(?:many|much|long|often|large|big)\b)|"
+                       r"why\b|explain\b|describe\b|what (?:is|are) the (?:exact|precise|mathematical|formal)\b|"
+                       r"what (?:mechanism|algorithm|procedure|steps?)\b)", re.I)
+
 # --------------------------------------------------------------------------- API
 app = FastAPI(title="RAG Colosseum")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
                    expose_headers=["*"])
 
 ABSTAIN_SCORE = float(os.environ.get("ABSTAIN_SCORE", "0.30"))
+MECH_MIN_COVERAGE = float(os.environ.get("MECH_MIN_COVERAGE", "0.6"))
 COMPOUND = re.compile(r"\b(?:and|both|versus|vs\.?|compared?|comparison|difference|differ|respectively|"
                       r"combined|together|sum|total|plus|each of)\b", re.I)
 
@@ -451,9 +593,22 @@ def answer_question(question: str, top_k: int = 3) -> dict:
     clean, injected = sanitize(question or "")
     if not clean:
         return abstain("empty")
+    premise, ask = split_premise(clean)
+    correction = None
+    if premise:
+        conflict, ppid, corr = premise_conflict(premise)
+        if conflict:
+            if PREMISE_MODE == "abstain":
+                return abstain("false premise")
+            correction = corr
+        # retrieve on the whole question but without the premise's (possibly false) numbers
+        clean_r = NUM_IN_TEXT.sub(" ", premise) + " " + ask
+    else:
+        clean_r = clean
     names = named_tokens(clean)
     unk = unknown_entities(names)
-    raw, sent_score, attrs, hits = retrieve(clean, names)
+    raw, sent_score, attrs, hits = retrieve(clean_r, names)
+    attrs = detect_attrs(ask)
     cal = calibrate(raw)
     order = [int(i) for i in np.argsort(-raw)]
     top = order[0]
@@ -463,8 +618,14 @@ def answer_question(question: str, top_k: int = 3) -> dict:
         return abstain("unknown entity", dbg)
     if cal[top] < ABSTAIN_SCORE:
         return abstain("low similarity", dbg)
+    cov = coverage(ask, top, names)
+    dbg["coverage"] = round(cov, 3)
+    if MECHANISM.search(ask) and not COMPOUND.search(ask) and cov < MECH_MIN_COVERAGE:
+        return abstain("question asks about something the passage does not cover", dbg)
+    if not attrs and not COMPOUND.search(ask) and cov < 0.3:
+        return abstain("passage does not cover the question", dbg)
 
-    compound = bool(COMPOUND.search(clean))
+    compound = bool(COMPOUND.search(ask))
     # passages to answer from: normally just the top one; for compound questions naming
     # several distinct subjects, the best passage for each subject
     targets = [top]
@@ -484,7 +645,7 @@ def answer_question(question: str, top_k: int = 3) -> dict:
 
     answer_parts = []
     for pid in targets:
-        ans, _ = best_answer(clean, pid, names, attrs)
+        ans, _ = best_answer(ask, pid, names, attrs)
         if ans is None:
             if pid == top and len(targets) == 1:
                 return abstain("attribute not stated in passage", dbg)
@@ -496,7 +657,7 @@ def answer_question(question: str, top_k: int = 3) -> dict:
                 if not any(sentence_has(a, s) for s in answer_parts):
                     extra = [s for s in SENTS[pid] if sentence_has(a, s) and s not in answer_parts]
                     if extra:
-                        fs = focus_scores(clean, names)
+                        fs = focus_scores(ask, names)
                         k0 = [k for k, (i, _, s) in enumerate(FLAT_SENTS) if i == pid and s in extra]
                         answer_parts.append(FLAT_SENTS[max(k0, key=lambda k: fs[k])][2])
     if not answer_parts:
@@ -507,6 +668,9 @@ def answer_question(question: str, top_k: int = 3) -> dict:
     scores = [round(float(cal[i]), 4) for i in sources]
     margin = float(raw[top] - raw[order[1]]) if len(order) > 1 else 0.2
     confidence = round(float(np.clip(0.62 + 0.25 * cal[top] + 0.6 * margin, 0.61, 0.99)), 4)
+    if correction and correction not in answer_parts:
+        answer_parts.insert(0, "Note: the question's premise conflicts with the knowledge base, which states: "
+                            + correction + " Answer:")
     body = {"answer": " ".join(answer_parts), "sources": sources, "scores": scores, "confidence": confidence}
     if os.environ.get("DEBUG"):
         body["debug"] = dbg
